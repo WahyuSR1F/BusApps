@@ -1,5 +1,18 @@
-import { getDb } from "../api/queries/connection";
+import { getDb } from "../server/queries/connection";
 import { buses, routes, employees, schedules } from "./schema";
+
+// Kolom tanggal/waktu di SQLite disimpan sebagai text (ISO string),
+// hargaTiket sebagai real (number).
+const at = (dayOffset: number, hour: number, minute = 0) => {
+  const now = new Date();
+  return new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() + dayOffset,
+    hour,
+    minute,
+  ).toISOString();
+};
 
 async function seed() {
   const db = getDb();
@@ -7,12 +20,12 @@ async function seed() {
 
   // Seed Buses
   const busData = [
-    { platNomor: "B 1234 ABC", merek: "Mercedes-Benz", model: "OH 1626", kapasitas: 45, fasilitas: 'AC, TV, Toilet, WiFi', status: "aktif" as const, tahun: 2022 },
-    { platNomor: "B 5678 DEF", merek: "Hino", model: "RN 285", kapasitas: 50, fasilitas: 'AC, TV, Toilet', status: "aktif" as const, tahun: 2023 },
-    { platNomor: "B 9012 GHI", merek: "Scania", model: "K410", kapasitas: 40, fasilitas: 'AC, TV, Toilet, WiFi, USB Charger', status: "aktif" as const, tahun: 2023 },
-    { platNomor: "B 3456 JKL", merek: "Volvo", model: "B11R", kapasitas: 45, fasilitas: 'AC, TV, Toilet, WiFi', status: "perbaikan" as const, tahun: 2021 },
-    { platNomor: "B 7890 MNO", merek: "Isuzu", model: "LT 134", kapasitas: 35, fasilitas: 'AC, TV', status: "aktif" as const, tahun: 2022 },
-    { platNomor: "B 1111 PQR", merek: "Mercedes-Benz", model: "OH 1526", kapasitas: 42, fasilitas: 'AC, TV, Toilet, WiFi, USB Charger', status: "aktif" as const, tahun: 2024 },
+    { platNomor: "B 1234 ABC", merek: "Mercedes-Benz", model: "OH 1626", kapasitas: 45, fasilitas: "AC, TV, Toilet, WiFi", status: "aktif" as const, tahun: 2022 },
+    { platNomor: "B 5678 DEF", merek: "Hino", model: "RN 285", kapasitas: 50, fasilitas: "AC, TV, Toilet", status: "aktif" as const, tahun: 2023 },
+    { platNomor: "B 9012 GHI", merek: "Scania", model: "K410", kapasitas: 40, fasilitas: "AC, TV, Toilet, WiFi, USB Charger", status: "aktif" as const, tahun: 2023 },
+    { platNomor: "B 3456 JKL", merek: "Volvo", model: "B11R", kapasitas: 45, fasilitas: "AC, TV, Toilet, WiFi", status: "perbaikan" as const, tahun: 2021 },
+    { platNomor: "B 7890 MNO", merek: "Isuzu", model: "LT 134", kapasitas: 35, fasilitas: "AC, TV", status: "aktif" as const, tahun: 2022 },
+    { platNomor: "B 1111 PQR", merek: "Mercedes-Benz", model: "OH 1526", kapasitas: 42, fasilitas: "AC, TV, Toilet, WiFi, USB Charger", status: "aktif" as const, tahun: 2024 },
   ];
 
   for (const bus of busData) {
@@ -22,12 +35,12 @@ async function seed() {
 
   // Seed Routes
   const routeData = [
-    { namaTujuan: "Surabaya", kodeRute: "JKT-SBY", hargaTiket: "350000", estimasiJam: 12, estimasiMenit: 30, jarakKm: 780, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Bungurasih", keterangan: "Via tol Trans-Java" },
-    { namaTujuan: "Yogyakarta", kodeRute: "JKT-YOG", hargaTiket: "280000", estimasiJam: 10, estimasiMenit: 0, jarakKm: 520, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Giwangan", keterangan: "Via tol Cipularang" },
-    { namaTujuan: "Semarang", kodeRute: "JKT-SMG", hargaTiket: "220000", estimasiJam: 8, estimasiMenit: 30, jarakKm: 450, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Terboyo", keterangan: "Via tol Cipularang" },
-    { namaTujuan: "Malang", kodeRute: "JKT-MLG", hargaTiket: "380000", estimasiJam: 14, estimasiMenit: 0, jarakKm: 850, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Arjosari", keterangan: "Via tol Trans-Java" },
-    { namaTujuan: "Bandung", kodeRute: "JKT-BDG", hargaTiket: "120000", estimasiJam: 3, estimasiMenit: 30, jarakKm: 150, terminalAsal: "Terminal Lebak Bulus", terminalTujuan: "Terminal Leuwi Panjang", keterangan: "Via tol Cipularang" },
-    { namaTujuan: "Solo", kodeRute: "JKT-SLO", hargaTiket: "300000", estimasiJam: 10, estimasiMenit: 30, jarakKm: 560, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Tirtonadi", keterangan: "Via tol Trans-Java" },
+    { namaTujuan: "Surabaya", kodeRute: "JKT-SBY", hargaTiket: 350000, estimasiJam: 12, estimasiMenit: 30, jarakKm: 780, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Bungurasih", keterangan: "Via tol Trans-Java" },
+    { namaTujuan: "Yogyakarta", kodeRute: "JKT-YOG", hargaTiket: 280000, estimasiJam: 10, estimasiMenit: 0, jarakKm: 520, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Giwangan", keterangan: "Via tol Cipularang" },
+    { namaTujuan: "Semarang", kodeRute: "JKT-SMG", hargaTiket: 220000, estimasiJam: 8, estimasiMenit: 30, jarakKm: 450, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Terboyo", keterangan: "Via tol Cipularang" },
+    { namaTujuan: "Malang", kodeRute: "JKT-MLG", hargaTiket: 380000, estimasiJam: 14, estimasiMenit: 0, jarakKm: 850, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Arjosari", keterangan: "Via tol Trans-Java" },
+    { namaTujuan: "Bandung", kodeRute: "JKT-BDG", hargaTiket: 120000, estimasiJam: 3, estimasiMenit: 30, jarakKm: 150, terminalAsal: "Terminal Lebak Bulus", terminalTujuan: "Terminal Leuwi Panjang", keterangan: "Via tol Cipularang" },
+    { namaTujuan: "Solo", kodeRute: "JKT-SLO", hargaTiket: 300000, estimasiJam: 10, estimasiMenit: 30, jarakKm: 560, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Tirtonadi", keterangan: "Via tol Cipularang" },
   ];
 
   for (const route of routeData) {
@@ -63,63 +76,62 @@ async function seed() {
   console.log("Employees seeded.");
 
   // Seed Schedules
-  const now = new Date();
   const scheduleData = [
     {
       busId: 1, ruteId: 1, supirId: 1, kernetId: 1,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 8, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 8, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 20, 30),
-      hargaTiket: "350000", status: "tersedia" as const, jumlahPenumpang: 12,
+      tanggal: at(1, 8),
+      waktuBerangkat: at(1, 8),
+      waktuSampai: at(1, 20, 30),
+      hargaTiket: 350000, status: "tersedia" as const, jumlahPenumpang: 12,
     },
     {
       busId: 2, ruteId: 2, supirId: 2, kernetId: 2,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 9, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 9, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 19, 0),
-      hargaTiket: "280000", status: "tersedia" as const, jumlahPenumpang: 28,
+      tanggal: at(1, 9),
+      waktuBerangkat: at(1, 9),
+      waktuSampai: at(1, 19),
+      hargaTiket: 280000, status: "tersedia" as const, jumlahPenumpang: 28,
     },
     {
       busId: 3, ruteId: 3, supirId: 3, kernetId: 3,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 30),
-      hargaTiket: "220000", status: "berangkat" as const, jumlahPenumpang: 40,
+      tanggal: at(0, 7),
+      waktuBerangkat: at(0, 7),
+      waktuSampai: at(0, 15, 30),
+      hargaTiket: 220000, status: "berangkat" as const, jumlahPenumpang: 40,
     },
     {
       busId: 5, ruteId: 5, supirId: 5, kernetId: 4,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 13, 30),
-      hargaTiket: "120000", status: "sampai" as const, jumlahPenumpang: 32,
+      tanggal: at(0, 10),
+      waktuBerangkat: at(0, 10),
+      waktuSampai: at(0, 13, 30),
+      hargaTiket: 120000, status: "sampai" as const, jumlahPenumpang: 32,
     },
     {
       busId: 6, ruteId: 4, supirId: 1, kernetId: 1,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 6, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 6, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 20, 0),
-      hargaTiket: "380000", status: "tersedia" as const, jumlahPenumpang: 5,
+      tanggal: at(2, 6),
+      waktuBerangkat: at(2, 6),
+      waktuSampai: at(2, 20),
+      hargaTiket: 380000, status: "tersedia" as const, jumlahPenumpang: 5,
     },
     {
       busId: 1, ruteId: 2, supirId: 3, kernetId: 2,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 8, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 8, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 2, 18, 0),
-      hargaTiket: "280000", status: "tersedia" as const, jumlahPenumpang: 0,
+      tanggal: at(2, 8),
+      waktuBerangkat: at(2, 8),
+      waktuSampai: at(2, 18),
+      hargaTiket: 280000, status: "tersedia" as const, jumlahPenumpang: 0,
     },
     {
       busId: 2, ruteId: 6, supirId: 2, kernetId: 3,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 7, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 7, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 3, 17, 30),
-      hargaTiket: "300000", status: "penuh" as const, jumlahPenumpang: 50,
+      tanggal: at(3, 7),
+      waktuBerangkat: at(3, 7),
+      waktuSampai: at(3, 17, 30),
+      hargaTiket: 300000, status: "penuh" as const, jumlahPenumpang: 50,
     },
     {
       busId: 3, ruteId: 1, supirId: 5, kernetId: 4,
-      tanggal: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0),
-      waktuBerangkat: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0),
-      waktuSampai: new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 8, 30),
-      hargaTiket: "350000", status: "berangkat" as const, jumlahPenumpang: 38,
+      tanggal: at(0, 20),
+      waktuBerangkat: at(0, 20),
+      waktuSampai: at(1, 8, 30),
+      hargaTiket: 350000, status: "berangkat" as const, jumlahPenumpang: 38,
     },
   ];
 

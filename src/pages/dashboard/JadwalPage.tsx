@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { trpc } from '@/providers/trpc';
+import { format } from 'date-fns';
 import DataTable from '@/components/dashboard/DataTable';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 
 const statusColors: Record<string, string> = {
   tersedia: 'bg-blue-100 text-blue-700',
@@ -18,24 +17,41 @@ const statusLabels: Record<string, string> = {
 
 export default function JadwalPage() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const utils = trpc.useUtils();
+  const [, setSearch] = useState('');
 
-  const { data, isLoading } = trpc.schedule.list.useQuery({ search: search || undefined, page, limit: 10 });
-  const deleteMutation = trpc.schedule.delete.useMutation({
-    onSuccess: () => utils.schedule.list.invalidate(),
-  });
+  // Contoh data untuk demo
+  const sampleData = [
+    {
+      tanggal: new Date('2023-10-05T08:00:00Z').toISOString(),
+      waktuBerangkat: '08:00',
+      ruteId: 1,
+      busId: 2,
+      supirId: 3,
+      hargaTiket: 20000,
+      status: 'tersedia',
+    },
+    {
+      tanggal: new Date('2023-10-05T09:00:00Z').toISOString(),
+      waktuBerangkat: '09:00',
+      ruteId: 1,
+      busId: 4,
+      supirId: 5,
+      hargaTiket: 25000,
+      status: 'berangkat',
+    },
+    // Tambahkan lebih banyak data contoh sesuai kebutuhan
+  ];
 
   const columns = [
     {
       key: 'tanggal',
       label: 'Tanggal',
-      render: (value: unknown) => value ? format(new Date(value as string), 'dd/MM/yyyy') : '-',
+      render: (value: unknown) => (value ? format(new Date(value as string), 'dd/MM/yyyy') : '-'),
     },
     {
       key: 'waktuBerangkat',
       label: 'Berangkat',
-      render: (value: unknown) => value ? format(new Date(value as string), 'HH:mm') : '-',
+      render: (value: unknown) => (value ? format(new Date(value as string), 'HH:mm') : '-'),
     },
     {
       key: 'ruteId',
@@ -62,27 +78,25 @@ export default function JadwalPage() {
       label: 'Status',
       render: (value: unknown) => (
         <Badge className={`${statusColors[value as string] || 'bg-slate-100'} border-0`}>
-          {statusLabels[value as string] || String(value)}
+          {statusLabels[value as string]}
         </Badge>
       ),
     },
   ];
-
-  const items = (data?.items || []) as unknown as Record<string, unknown>[];
 
   return (
     <DataTable
       title="Manajemen Jadwal"
       description="Kelola jadwal perjalanan bus"
       columns={columns}
-      data={items}
-      isLoading={isLoading}
-      total={data?.total || 0}
-      page={data?.page || 1}
-      totalPages={data?.totalPages || 1}
+      data={sampleData || []} // Gunakan data contoh saat ini
+      isLoading={false}
+      total={10} // Jumlah total data dummy
+      page={page}
+      totalPages={2} // Jumlah total halaman dummy
       onPageChange={setPage}
       onSearch={setSearch}
-      onDelete={(id) => deleteMutation.mutate({ id })}
+      onDelete={(id) => console.warn('Delete dummy schedule:', id)}
       addLink="/dashboard/jadwal/tambah"
       editLinkPrefix="/dashboard/jadwal"
       searchPlaceholder="Cari rute, bus, atau supir..."

@@ -135,14 +135,20 @@ export const scheduleRouter = createRouter({
     )
     .mutation(async ({ input }) => {
       const db = getDb();
+      // Kolom SQLite bertipe text -> simpan sebagai ISO string;
+      // hargaTiket bertipe real -> number.
       const data = {
         ...input,
-        tanggal: new Date(input.tanggal),
-        waktuBerangkat: new Date(input.waktuBerangkat),
-        waktuSampai: new Date(input.waktuSampai),
+        tanggal: new Date(input.tanggal).toISOString(),
+        waktuBerangkat: new Date(input.waktuBerangkat).toISOString(),
+        waktuSampai: new Date(input.waktuSampai).toISOString(),
+        hargaTiket: Number(input.hargaTiket),
       };
-      const result = await db.insert(schedules).values(data);
-      return { id: Number(result[0].insertId), ...input };
+      const result = await db
+        .insert(schedules)
+        .values(data)
+        .returning({ id: schedules.id });
+      return { id: result[0].id, ...input };
     }),
 
   update: publicQuery
@@ -166,18 +172,25 @@ export const scheduleRouter = createRouter({
       const db = getDb();
       const { id, ...data } = input;
       
-      const updateData: Record<string, unknown> = {};
+      const updateData: Partial<typeof schedules.$inferInsert> = {
+        updatedAt: new Date().toISOString(),
+      };
       if (data.busId !== undefined) updateData.busId = data.busId;
       if (data.ruteId !== undefined) updateData.ruteId = data.ruteId;
       if (data.supirId !== undefined) updateData.supirId = data.supirId;
       if (data.kernetId !== undefined) updateData.kernetId = data.kernetId;
-      if (data.tanggal !== undefined) updateData.tanggal = new Date(data.tanggal);
-      if (data.waktuBerangkat !== undefined) updateData.waktuBerangkat = new Date(data.waktuBerangkat);
-      if (data.waktuSampai !== undefined) updateData.waktuSampai = new Date(data.waktuSampai);
-      if (data.hargaTiket !== undefined) updateData.hargaTiket = data.hargaTiket;
+      if (data.tanggal !== undefined)
+        updateData.tanggal = new Date(data.tanggal).toISOString();
+      if (data.waktuBerangkat !== undefined)
+        updateData.waktuBerangkat = new Date(data.waktuBerangkat).toISOString();
+      if (data.waktuSampai !== undefined)
+        updateData.waktuSampai = new Date(data.waktuSampai).toISOString();
+      if (data.hargaTiket !== undefined)
+        updateData.hargaTiket = Number(data.hargaTiket);
       if (data.keterangan !== undefined) updateData.keterangan = data.keterangan;
       if (data.status !== undefined) updateData.status = data.status;
-      if (data.jumlahPenumpang !== undefined) updateData.jumlahPenumpang = data.jumlahPenumpang;
+      if (data.jumlahPenumpang !== undefined)
+        updateData.jumlahPenumpang = data.jumlahPenumpang;
       
       await db.update(schedules).set(updateData).where(eq(schedules.id, id));
       return { id, ...data };

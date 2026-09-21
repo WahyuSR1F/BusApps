@@ -64,8 +64,12 @@ export const routeRouter = createRouter({
     )
     .mutation(async ({ input }) => {
       const db = getDb();
-      const result = await db.insert(routes).values(input);
-      return { id: Number(result[0].insertId), ...input };
+      // Kolom SQLite bertipe real -> number (input dari form masih string).
+      const result = await db
+        .insert(routes)
+        .values({ ...input, hargaTiket: Number(input.hargaTiket) })
+        .returning({ id: routes.id });
+      return { id: result[0].id, ...input };
     }),
 
   update: publicQuery
@@ -86,8 +90,14 @@ export const routeRouter = createRouter({
     )
     .mutation(async ({ input }) => {
       const db = getDb();
-      const { id, ...data } = input;
-      await db.update(routes).set(data).where(eq(routes.id, id));
+      const { id, hargaTiket, ...data } = input;
+      const updateData: Partial<typeof routes.$inferInsert> = {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      };
+      if (hargaTiket !== undefined)
+        updateData.hargaTiket = Number(hargaTiket);
+      await db.update(routes).set(updateData).where(eq(routes.id, id));
       return { id, ...data };
     }),
 

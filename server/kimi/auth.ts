@@ -4,8 +4,8 @@ import * as jose from "jose";
 import * as cookie from "cookie";
 import { env } from "../lib/env";
 import { getSessionCookieOptions } from "../lib/cookies";
-import { Session } from "@contracts/constants";
-import { Errors } from "@contracts/errors";
+import { Session } from "../../contracts/constants";
+import { Errors } from "../../contracts/errors";
 import { signSessionToken, verifySessionToken } from "./session";
 import { users as kimiUsers } from "./platform";
 import { findUserByUnionId, upsertUser } from "../queries/users";
@@ -112,7 +112,7 @@ export function createOAuthCallbackHandler() {
         unionId: userId,
         name: userProfile.name,
         avatar: userProfile.avatar_url,
-        lastSignInAt: new Date(),
+        lastSignInAt: new Date().toISOString(),
       });
 
       const token = await signSessionToken({

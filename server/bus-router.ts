@@ -62,8 +62,8 @@ export const busRouter = createRouter({
     )
     .mutation(async ({ input }) => {
       const db = getDb();
-      const result = await db.insert(buses).values(input);
-      return { id: Number(result[0].insertId), ...input };
+      const result = await db.insert(buses).values(input).returning({ id: buses.id });
+      return { id: result[0].id, ...input };
     }),
 
   update: publicQuery
@@ -83,7 +83,10 @@ export const busRouter = createRouter({
     .mutation(async ({ input }) => {
       const db = getDb();
       const { id, ...data } = input;
-      await db.update(buses).set(data).where(eq(buses.id, id));
+      await db
+        .update(buses)
+        .set({ ...data, updatedAt: new Date().toISOString() })
+        .where(eq(buses.id, id));
       return { id, ...data };
     }),
 

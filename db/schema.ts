@@ -1,10 +1,13 @@
-import {
-  sqliteTable,
-  integer,
-  text,
-  real,
-  bigint,
-} from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { sqliteTable, integer, text, real } from "drizzle-orm/sqlite-core";
+
+// Catatan migrasi MySQL -> SQLite (Turso):
+// - `mysqlEnum` / `integer({ mode: "enum" })` -> `text({ enum: [...] })`
+//   (SQLite tidak punya mode "enum" untuk integer; opsi valid hanya
+//   "number" | "boolean" | "timestamp" | "timestamp_ms")
+// - `{ unsigned: true }` tidak ada di SQLite -> dihapus
+// - `serial` -> `integer(...).primaryKey({ autoIncrement: true })`
+// - `timestamp` -> `text` berisi ISO string, default DB `datetime('now')`
 
 // ============================================================
 // TABEL USER (ADMIN AUTH)
@@ -15,10 +18,10 @@ export const users = sqliteTable("users", {
   name: text("name", { length: 255 }),
   email: text("email", { length: 320 }),
   avatar: text("avatar"),
-  role: integer("role", { mode: "enum" }).default(0).notNull(),
-  createdAt: text("createdAt").default((() => new Date().toISOString())()).notNull(),
-  updatedAt: text("updatedAt").default((() => new Date().toISOString())()).notNull(),
-  lastSignInAt: text("lastSignInAt").default((() => new Date().toISOString())()).notNull(),
+  role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
+  createdAt: text("createdAt").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updatedAt").default(sql`(datetime('now'))`).notNull(),
+  lastSignInAt: text("lastSignInAt").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -35,10 +38,12 @@ export const buses = sqliteTable("buses", {
   kapasitas: integer("kapasitas").notNull(),
   fasilitas: text("fasilitas"),
   fotoUrl: text("foto_url"),
-  status: integer("status", { mode: "enum" }).default(0).notNull(),
+  status: text("status", { enum: ["aktif", "perbaikan", "nonaktif"] })
+    .default("aktif")
+    .notNull(),
   tahun: integer("tahun"),
-  createdAt: text("created_at").default((() => new Date().toISOString())()).notNull(),
-  updatedAt: text("updated_at").default((() => new Date().toISOString())()).notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Bus = typeof buses.$inferSelect;
@@ -58,9 +63,11 @@ export const routes = sqliteTable("routes", {
   terminalAsal: text("terminal_asal", { length: 200 }).notNull(),
   terminalTujuan: text("terminal_tujuan", { length: 200 }).notNull(),
   keterangan: text("keterangan"),
-  status: integer("status", { mode: "enum" }).default(0).notNull(),
-  createdAt: text("created_at").default((() => new Date().toISOString())()).notNull(),
-  updatedAt: text("updated_at").default((() => new Date().toISOString())()).notNull(),
+  status: text("status", { enum: ["aktif", "nonaktif"] })
+    .default("aktif")
+    .notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Route = typeof routes.$inferSelect;
@@ -75,13 +82,15 @@ export const employees = sqliteTable("employees", {
   noTelp: text("no_telp", { length: 20 }),
   email: text("email", { length: 320 }),
   alamat: text("alamat"),
-  role: integer("role", { mode: "enum" }).notNull(),
+  role: text("role", { enum: ["supir", "kernet"] }).notNull(),
   noSim: text("no_sim", { length: 50 }),
   jenisSim: text("jenis_sim", { length: 20 }),
   fotoUrl: text("foto_url"),
-  status: integer("status", { mode: "enum" }).default(0).notNull(),
-  createdAt: text("created_at").default((() => new Date().toISOString())()).notNull(),
-  updatedAt: text("updated_at").default((() => new Date().toISOString())()).notNull(),
+  status: text("status", { enum: ["aktif", "cuti", "nonaktif"] })
+    .default("aktif")
+    .notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Employee = typeof employees.$inferSelect;
@@ -92,19 +101,23 @@ export type InsertEmployee = typeof employees.$inferInsert;
 // ============================================================
 export const schedules = sqliteTable("schedules", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  busId: integer("bus_id", { unsigned: true }).notNull(),
-  ruteId: integer("rute_id", { unsigned: true }).notNull(),
-  supirId: integer("supir_id", { unsigned: true }).notNull(),
-  kernetId: integer("kernet_id", { unsigned: true }),
+  busId: integer("bus_id").notNull(),
+  ruteId: integer("rute_id").notNull(),
+  supirId: integer("supir_id").notNull(),
+  kernetId: integer("kernet_id"),
   tanggal: text("tanggal").notNull(),
   waktuBerangkat: text("waktu_berangkat").notNull(),
   waktuSampai: text("waktu_sampai").notNull(),
   hargaTiket: real("harga_tiket").notNull(),
   keterangan: text("keterangan"),
-  status: integer("status", { mode: "enum" }).default(0).notNull(),
+  status: text("status", {
+    enum: ["tersedia", "berangkat", "sampai", "batal", "penuh"],
+  })
+    .default("tersedia")
+    .notNull(),
   jumlahPenumpang: integer("jumlah_penumpang").default(0).notNull(),
-  createdAt: text("created_at").default((() => new Date().toISOString())()).notNull(),
-  updatedAt: text("updated_at").default((() => new Date().toISOString())()).notNull(),
+  createdAt: text("created_at").default(sql`(datetime('now'))`).notNull(),
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
 });
 
 export type Schedule = typeof schedules.$inferSelect;

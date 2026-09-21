@@ -65,8 +65,11 @@ export const employeeRouter = createRouter({
     )
     .mutation(async ({ input }) => {
       const db = getDb();
-      const result = await db.insert(employees).values(input);
-      return { id: Number(result[0].insertId), ...input };
+      const result = await db
+        .insert(employees)
+        .values(input)
+        .returning({ id: employees.id });
+      return { id: result[0].id, ...input };
     }),
 
   update: publicQuery
@@ -87,7 +90,10 @@ export const employeeRouter = createRouter({
     .mutation(async ({ input }) => {
       const db = getDb();
       const { id, ...data } = input;
-      await db.update(employees).set(data).where(eq(employees.id, id));
+      await db
+        .update(employees)
+        .set({ ...data, updatedAt: new Date().toISOString() })
+        .where(eq(employees.id, id));
       return { id, ...data };
     }),
 

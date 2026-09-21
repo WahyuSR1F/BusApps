@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import * as schema from "@db/schema";
-import type { InsertUser } from "@db/schema";
+import * as schema from "../../db/schema";
+import type { InsertUser } from "../../db/schema";
 import { getDb } from "./connection";
 import { env } from "../lib/env";
 
@@ -16,7 +16,7 @@ export async function findUserByUnionId(unionId: string) {
 export async function upsertUser(data: InsertUser) {
   const values = { ...data };
   const updateSet: Partial<InsertUser> = {
-    lastSignInAt: new Date(),
+    lastSignInAt: new Date().toISOString(),
     ...data,
   };
 
@@ -32,5 +32,8 @@ export async function upsertUser(data: InsertUser) {
   await getDb()
     .insert(schema.users)
     .values(values)
-    .onDuplicateKeyUpdate({ set: updateSet });
+    .onConflictDoUpdate({
+      target: schema.users.unionId,
+      set: updateSet,
+    });
 }
