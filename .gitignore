@@ -30,7 +30,9 @@ dist-ssr
 *.db
 *.sqlite
 *.sqlite3
-db/migrations/*.sql
+# File migrasi .sql HARUS di-commit agar `db:migrate` bisa jalan di Vercel
+!db/migrations/*.sql
+!db/migrations/meta/*.sql
 # TypeScript cache
 *.tsbuildinfo
 # Build outputs

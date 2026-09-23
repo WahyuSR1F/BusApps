@@ -18,7 +18,7 @@ export const routeRouter = createRouter({
       const db = getDb();
       const { search, status, page = 1, limit = 10 } = input || {};
       
-      let query = db.select().from(routes);
+      const query = db.select().from(routes);
       
       const conditions = [];
       if (search) {

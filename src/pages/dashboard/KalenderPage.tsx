@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar, Clock, Bus, MapPin, User, Banknote, Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
-import type { EventClickArg, DateSelectArg } from '@fullcalendar/core';
+import type { EventClickArg } from '@fullcalendar/core';
 
 const statusColors: Record<string, string> = {
   tersedia: 'bg-blue-100 text-blue-700',
@@ -55,7 +55,7 @@ export default function KalenderPage() {
     setDialogOpen(true);
   };
 
-  const handleDateSelect = (_arg: DateSelectArg) => {
+  const handleDateSelect = () => {
     navigate(`/dashboard/jadwal/tambah`);
   };
 

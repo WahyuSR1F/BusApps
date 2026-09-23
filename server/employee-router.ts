@@ -19,7 +19,7 @@ export const employeeRouter = createRouter({
       const db = getDb();
       const { search, role, status, page = 1, limit = 10 } = input || {};
       
-      let query = db.select().from(employees);
+      const query = db.select().from(employees);
       
       const allEmployees = await query.orderBy(desc(employees.createdAt));
       

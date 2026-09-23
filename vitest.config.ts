@@ -15,5 +15,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["api/**/*.test.ts", "api/**/*.spec.ts"],
+    // Jangan gagalkan CI saat belum ada file test sama sekali.
+    passWithNoTests: true,
   },
 });

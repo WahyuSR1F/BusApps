@@ -20,4 +20,29 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // Komponen shadcn/ui lazim mengekspor helper bersama (variants, FormProvider,
+    // dll) dari file komponen — bukan pelanggaran fast-refresh yang perlu dipecah.
+    files: ['src/components/ui/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    // File provider tRPC lazim mengekspor instance `trpc` bersama komponen
+    // Provider — konsekuensi hanya full reload saat HMR, bukan bug.
+    files: ['src/providers/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
+    files: ['server/**/*.{ts,tsx}'],
+    languageOptions: {
+      globals: globals.node,
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
 ])

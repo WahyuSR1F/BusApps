@@ -187,10 +187,16 @@ export default function JadwalFormPage() {
 
               <div className="space-y-2">
                 <Label>Pilih Kernet (Opsional)</Label>
-                <Select onValueChange={(v) => setValue('kernetId', v ? Number(v) : undefined)} value={watch('kernetId')?.toString() || ''}>
+                {/* Radix UI melarang value="" pada SelectItem (crash render), jadi
+                    "Tanpa Kernet" pakai sentinel value "none" lalu dikonversi ke
+                    undefined agar tetap terkirim sebagai kosong. */}
+                <Select
+                  onValueChange={(v) => setValue('kernetId', v === 'none' ? undefined : Number(v))}
+                  value={watch('kernetId') ? String(watch('kernetId')) : 'none'}
+                >
                   <SelectTrigger><SelectValue placeholder="Pilih kernet (opsional)" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tanpa Kernet</SelectItem>
+                    <SelectItem value="none">Tanpa Kernet</SelectItem>
                     {(kernetData?.items as Record<string, unknown>[] || []).map((kernet) => (
                       <SelectItem key={kernet.id as number} value={String(kernet.id)}>
                         {kernet.nama as string}
