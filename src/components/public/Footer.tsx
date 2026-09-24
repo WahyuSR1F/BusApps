@@ -1,7 +1,9 @@
 import { Link } from 'react-router';
 import { Bus, Phone, Mail, MapPin } from 'lucide-react';
+import { useContactSettings } from '@/hooks/useContactSettings';
 
 export default function Footer() {
+  const contact = useContactSettings();
   return (
     <footer className="bg-slate-900 text-slate-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -12,7 +14,7 @@ export default function Footer() {
               <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
                 <Bus className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">SafaTrans</span>
+              <span className="text-xl font-bold text-white">{contact.appName}</span>
             </Link>
             <p className="text-sm text-slate-400 mb-4">
               Perusahaan bus travel terpercaya yang menyediakan layanan perjalanan nyaman dan aman ke seluruh Indonesia.
@@ -20,15 +22,15 @@ export default function Footer() {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="w-4 h-4 text-blue-400" />
-                <span>+62 21-1234-5678</span>
+                <span>{contact.phonePrimary}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Mail className="w-4 h-4 text-blue-400" />
-                <span>info@safatrans.co.id</span>
+                <span>{contact.emailPrimary}</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="w-4 h-4 text-blue-400" />
-                <span>Jl. Raya Jakarta No. 123</span>
+                <span>{contact.address}</span>
               </div>
             </div>
           </div>
@@ -80,7 +82,7 @@ export default function Footer() {
 
         <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-500">
-            &copy; {new Date().getFullYear()} SafaTrans. All rights reserved.
+            &copy; {new Date().getFullYear()} {contact.appName}. All rights reserved.
           </p>
           <Link to="/dashboard" className="text-sm text-slate-500 hover:text-blue-400 transition-colors">
             Admin Dashboard

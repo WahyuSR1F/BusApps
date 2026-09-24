@@ -19,6 +19,7 @@ import KernetPage from './pages/dashboard/KernetPage'
 import KernetFormPage from './pages/dashboard/KernetFormPage'
 import JadwalPage from './pages/dashboard/JadwalPage'
 import JadwalFormPage from './pages/dashboard/JadwalFormPage'
+import ProfilPage from './pages/dashboard/ProfilPage'
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
         <Route path="kernet" element={<KernetPage />} />
         <Route path="kernet/tambah" element={<KernetFormPage />} />
         <Route path="kernet/:id/edit" element={<KernetFormPage />} />
+        <Route path="profil" element={<ProfilPage />} />
       </Route>
       
       <Route path="*" element={<NotFound />} />

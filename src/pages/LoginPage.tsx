@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
 import { Bus, Eye, EyeOff, Loader2 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
+import { useAppName } from "@/hooks/useContactSettings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState(false);
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (user) => {
@@ -35,7 +39,11 @@ export default function LoginPage() {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    loginMutation.mutate({ email, password });
+    if (!captchaToken) {
+      setCaptchaError(true);
+      return;
+    }
+    loginMutation.mutate({ email, password, turnstileToken: captchaToken });
   }
 
   const isLoading = loginMutation.isPending;
@@ -50,7 +58,7 @@ export default function LoginPage() {
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
             <Bus className="w-5 h-5 text-white" />
           </div>
-          <span className="text-2xl font-bold text-slate-900">SafaTrans</span>
+          <span className="text-2xl font-bold text-slate-900">{useAppName()}</span>
         </Link>
 
         <Card>
@@ -113,6 +121,24 @@ export default function LoginPage() {
                   <p className="text-sm text-green-600 bg-green-50 border border-green-200 rounded-md px-3 py-2">
                     Pendaftaran berhasil! Silakan login.
                   </p>
+                )}
+
+                <TurnstileWidget
+                  onToken={(token) => {
+                    setCaptchaToken(token);
+                    setCaptchaError(false);
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => {
+                    setCaptchaToken(null);
+                    setCaptchaError(true);
+                  }}
+                />
+                {captchaError && !captchaToken && (
+                  <FieldError>
+                    Verifikasi keamanan belum selesai. Muat ulang halaman dan
+                    coba lagi.
+                  </FieldError>
                 )}
 
                 {error && <FieldError>{error}</FieldError>}

@@ -2,8 +2,10 @@ import { Link } from 'react-router-dom'; // Import Link here
 import Navbar from '@/components/public/Navbar';
 import Footer from '@/components/public/Footer';
 import { Bus, Users, Settings, Star, ArrowLeft } from 'lucide-react';
+import { useAppName } from '@/hooks/useContactSettings';
 
 export default function GaleriPage() {
+  const appName = useAppName();
   const allBuses = [
     {
       id: 1,
@@ -43,7 +45,7 @@ export default function GaleriPage() {
               <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
             </Link>
             <h1 className="text-3xl font-bold text-slate-900 mb-2">Galeri Armada</h1>
-            <p className="text-slate-500">Koleksi armada bus SafaTrans yang siap melayani perjalanan Anda</p>
+            <p className="text-slate-500">Koleksi armada bus {appName} yang siap melayani perjalanan Anda</p>
           </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

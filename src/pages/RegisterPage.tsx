@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { Bus, Eye, EyeOff, Loader2 } from "lucide-react";
 import { trpc } from "@/providers/trpc";
+import { useAppName } from "@/hooks/useContactSettings";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,6 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
@@ -23,6 +25,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaError, setCaptchaError] = useState(false);
 
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: () => {
@@ -40,11 +44,16 @@ export default function RegisterPage() {
       setError("Konfirmasi password tidak cocok.");
       return;
     }
+    if (!captchaToken) {
+      setCaptchaError(true);
+      return;
+    }
     registerMutation.mutate({
       name,
       email,
       password,
       noTelp: noTelp ? noTelp : undefined,
+      turnstileToken: captchaToken,
     });
   }
 
@@ -60,7 +69,7 @@ export default function RegisterPage() {
           <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
             <Bus className="w-5 h-5 text-white" />
           </div>
-          <span className="text-2xl font-bold text-slate-900">SafaTrans</span>
+          <span className="text-2xl font-bold text-slate-900">{useAppName()}</span>
         </Link>
 
         <Card>
@@ -165,6 +174,24 @@ export default function RegisterPage() {
                 </Field>
 
                 {error && <FieldError>{error}</FieldError>}
+
+                <TurnstileWidget
+                  onToken={(token) => {
+                    setCaptchaToken(token);
+                    setCaptchaError(false);
+                  }}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => {
+                    setCaptchaToken(null);
+                    setCaptchaError(true);
+                  }}
+                />
+                {captchaError && !captchaToken && (
+                  <FieldError>
+                    Verifikasi keamanan belum selesai. Muat ulang halaman dan
+                    coba lagi.
+                  </FieldError>
+                )}
 
                 <Button
                   type="submit"

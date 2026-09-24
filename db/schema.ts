@@ -21,6 +21,9 @@ export const users = sqliteTable("users", {
   // yang daftar via email/password. Akun OAuth (Kimi) biarkan NULL.
   passwordHash: text("password_hash"),
   avatar: text("avatar"),
+  // Nomor WhatsApp admin (format internasional tanpa "+", contoh: 6281234567890).
+  // Dipakai sebagai tujuan default saat mengirim jadwal via WhatsApp.
+  whatsapp: text("whatsapp"),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
   createdAt: text("createdAt").default(sql`(datetime('now'))`).notNull(),
   updatedAt: text("updatedAt").default(sql`(datetime('now'))`).notNull(),
@@ -125,3 +128,27 @@ export const schedules = sqliteTable("schedules", {
 
 export type Schedule = typeof schedules.$inferSelect;
 export type InsertSchedule = typeof schedules.$inferInsert;
+
+// ============================================================
+// TABEL PENGATURAN SITUS (global, satu baris, id = 1)
+// Kontak publik yang bisa diedit admin via halaman Profil.
+// ============================================================
+export const siteSettings = sqliteTable("site_settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  // Nama aplikasi yang tampil di UI (navbar, footer, login, PDF, dll).
+  appName: text("app_name"),
+  phonePrimary: text("phone_primary"),
+  phoneSecondary: text("phone_secondary"),
+  emailPrimary: text("email_primary"),
+  emailSecondary: text("email_secondary"),
+  address: text("address"),
+  addressDetail: text("address_detail"),
+  operationalHours: text("operational_hours"),
+  operationalDetail: text("operational_detail"),
+  whatsapp: text("whatsapp"),
+  terminals: text("terminals"), // JSON string [{name, city}]
+  updatedAt: text("updated_at").default(sql`(datetime('now'))`).notNull(),
+});
+
+export type SiteSettings = typeof siteSettings.$inferSelect;
+export type InsertSiteSettings = typeof siteSettings.$inferInsert;

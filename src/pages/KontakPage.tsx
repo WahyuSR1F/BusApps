@@ -4,13 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Phone, Mail, MapPin, Clock, Send } from 'lucide-react';
+import { Phone, Mail, MapPin, Clock, Send, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
+import { useContactSettings } from '@/hooks/useContactSettings';
 
 export default function KontakPage() {
   const [submitted, setSubmitted] = useState(false);
+  const contact = useContactSettings();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +47,8 @@ export default function KontakPage() {
                     </div>
                     <div>
                       <div className="font-medium text-slate-900">Telepon</div>
-                      <div className="text-sm text-slate-500">+62 21-1234-5678</div>
-                      <div className="text-sm text-slate-500">+62 21-8765-4321</div>
+                      <div className="text-sm text-slate-500">{contact.phonePrimary}</div>
+                      <div className="text-sm text-slate-500">{contact.phoneSecondary}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -55,8 +57,8 @@ export default function KontakPage() {
                     </div>
                     <div>
                       <div className="font-medium text-slate-900">Email</div>
-                      <div className="text-sm text-slate-500">info@safatrans.co.id</div>
-                      <div className="text-sm text-slate-500">booking@safatrans.co.id</div>
+                      <div className="text-sm text-slate-500">{contact.emailPrimary}</div>
+                      <div className="text-sm text-slate-500">{contact.emailSecondary}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -65,8 +67,8 @@ export default function KontakPage() {
                     </div>
                     <div>
                       <div className="font-medium text-slate-900">Alamat</div>
-                      <div className="text-sm text-slate-500">Jl. Raya Jakarta No. 123</div>
-                      <div className="text-sm text-slate-500">Jakarta Timur, 13910</div>
+                      <div className="text-sm text-slate-500">{contact.address}</div>
+                      <div className="text-sm text-slate-500">{contact.addressDetail}</div>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -75,10 +77,28 @@ export default function KontakPage() {
                     </div>
                     <div>
                       <div className="font-medium text-slate-900">Jam Operasional</div>
-                      <div className="text-sm text-slate-500">Senin - Minggu</div>
-                      <div className="text-sm text-slate-500">24 Jam (Call Center)</div>
+                      <div className="text-sm text-slate-500">{contact.operationalHours}</div>
+                      <div className="text-sm text-slate-500">{contact.operationalDetail}</div>
                     </div>
                   </div>
+                  {contact.whatsapp ? (
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <MessageCircle className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-slate-900">WhatsApp</div>
+                        <a
+                          href={`https://wa.me/${contact.whatsapp}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-green-600 hover:underline"
+                        >
+                          Chat kami via WhatsApp
+                        </a>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 
@@ -86,11 +106,7 @@ export default function KontakPage() {
               <div className="bg-white rounded-xl border border-slate-200 p-6">
                 <h2 className="font-semibold text-slate-900 mb-4">Terminal Keberangkatan</h2>
                 <div className="space-y-3">
-                  {[
-                    { name: 'Terminal Pulo Gebang', city: 'Jakarta Timur' },
-                    { name: 'Terminal Lebak Bulus', city: 'Jakarta Selatan' },
-                    { name: 'Terminal Kampung Rambutan', city: 'Jakarta Timur' },
-                  ].map((t, i) => (
+                  {contact.terminals.map((t, i) => (
                     <div key={i} className="flex items-center gap-2 text-sm">
                       <MapPin className="w-4 h-4 text-blue-500" />
                       <div>

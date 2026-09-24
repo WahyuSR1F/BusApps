@@ -7,13 +7,57 @@ import { hashPassword, verifyPassword } from "./lib/password";
 import { signSessionToken } from "./kimi/session";
 import {
   findUserByEmail,
+  findUserByUnionId,
   createUser,
   updateUser,
 } from "./queries/users";
 import { createRouter, publicQuery, authedQuery } from "./middleware";
+import { verifyTurnstileToken } from "./lib/turnstile";
+
+// Normalisasi nomor WhatsApp ke format internasional tanpa "+" (untuk link wa.me).
+// 0812-3456-7890 -> 628123456789, +62 812... -> 62812...
+export function normalizeWhatsapp(raw: string): string {
+  let digits = raw.replace(/[^0-9]/g, "");
+  if (digits.startsWith("0")) digits = `62${digits.slice(1)}`;
+  return digits;
+}
 
 export const authRouter = createRouter({
   me: authedQuery.query((opts) => opts.ctx.user),
+
+  // Perbarui profil user yang sedang login (dipakai halaman Profil admin).
+  updateProfile: authedQuery
+    .input(
+      z.object({
+        name: z.string().trim().min(2).max(255).optional(),
+        // Nomor WhatsApp bebas format di input; dinormalisasi sebelum disimpan.
+        whatsapp: z
+          .string()
+          .trim()
+          .regex(/^[0-9+\-\s()]{8,20}$/, "Nomor WhatsApp tidak valid")
+          .optional()
+          .or(z.literal("")),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const data: { name?: string; whatsapp?: string | null } = {};
+      if (input.name !== undefined) data.name = input.name;
+      if (input.whatsapp !== undefined) {
+        // String kosong = menghapus nomor WhatsApp.
+        data.whatsapp = input.whatsapp === "" ? null : normalizeWhatsapp(input.whatsapp);
+      }
+
+      await updateUser(ctx.user.id, data);
+
+      const updated = await findUserByUnionId(ctx.user.unionId);
+      return {
+        id: updated?.id ?? ctx.user.id,
+        name: updated?.name ?? ctx.user.name,
+        email: updated?.email ?? ctx.user.email,
+        role: updated?.role ?? ctx.user.role,
+        whatsapp: updated?.whatsapp ?? null,
+      };
+    }),
 
   register: publicQuery
     .input(
@@ -22,9 +66,13 @@ export const authRouter = createRouter({
         email: z.string().trim().toLowerCase().email().max(320),
         password: z.string().min(8).max(255),
         noTelp: z.string().trim().min(8).max(20).optional(),
+        turnstileToken: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
+      // Verifikasi keamanan Cloudflare Turnstile (anti-bot) — login/register.
+      await verifyTurnstileToken(input.turnstileToken);
+
       const existing = await findUserByEmail(input.email);
       if (existing) {
         throw new TRPCError({
@@ -62,9 +110,13 @@ export const authRouter = createRouter({
       z.object({
         email: z.string().trim().toLowerCase().email().max(320),
         password: z.string().min(1).max(255),
+        turnstileToken: z.string().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      // Verifikasi keamanan Cloudflare Turnstile (anti-bot).
+      await verifyTurnstileToken(input.turnstileToken);
+
       const user = await findUserByEmail(input.email);
       // Pesan error disamakan agar tidak membocorkan keberadaan email.
       if (!user || !user.passwordHash) {

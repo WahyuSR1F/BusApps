@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { Bus, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAppName } from '@/hooks/useContactSettings';
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const appName = useAppName();
 
   const navLinks = [
     { to: '/', label: 'Beranda' },
@@ -23,7 +25,7 @@ export default function Navbar() {
             <div className="w-9 h-9 bg-blue-600 rounded-lg flex items-center justify-center">
               <Bus className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-slate-900">SafaTrans</span>
+            <span className="text-xl font-bold text-slate-900">{appName}</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -52,9 +54,6 @@ export default function Navbar() {
               <Button size="sm" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
                 Daftar
               </Button>
-            </Link>
-            <Link to="/dashboard">
-              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">Admin</Button>
             </Link>
           </div>
 
@@ -96,9 +95,6 @@ export default function Navbar() {
                 </Button>
               </Link>
             </div>
-            <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-              <Button size="sm" className="w-full mt-2 bg-blue-600 hover:bg-blue-700">Admin Dashboard</Button>
-            </Link>
           </div>
         </div>
       )}

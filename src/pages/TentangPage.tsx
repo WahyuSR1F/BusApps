@@ -3,8 +3,10 @@ import Footer from '@/components/public/Footer';
 import { Bus, Shield, Clock, Users, Award, Heart } from 'lucide-react';
 import { Link } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
+import { useAppName } from '@/hooks/useContactSettings';
 
 export default function TentangPage() {
+  const appName = useAppName();
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
@@ -14,7 +16,7 @@ export default function TentangPage() {
             <Link to="/" className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-blue-600 mb-4">
               <ArrowLeft className="w-4 h-4" /> Kembali ke Beranda
             </Link>
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Tentang SafaTrans</h1>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Tentang {appName}</h1>
             <p className="text-slate-500">Mengenal lebih dekat perusahaan bus travel terpercaya Indonesia</p>
           </div>
         </div>
@@ -29,7 +31,7 @@ export default function TentangPage() {
               </div>
               <h2 className="text-3xl font-bold text-slate-900 mb-4">Melayani Perjalanan Indonesia Sejak 2010</h2>
               <p className="text-slate-600 mb-4 leading-relaxed">
-                SafaTrans didirikan dengan visi untuk memberikan layanan transportasi darat yang aman, nyaman, dan terpercaya. 
+                {appName} didirikan dengan visi untuk memberikan layanan transportasi darat yang aman, nyaman, dan terpercaya. 
                 Dimulai dari satu rute Jakarta-Bandung dengan 3 unit bus, kini kami telah berkembang menjadi salah satu 
                 perusahaan bus travel terkemuka dengan menjangkau lebih dari 30 kota di Pulau Jawa dan Sumatera.
               </p>

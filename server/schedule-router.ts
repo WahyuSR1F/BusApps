@@ -19,7 +19,7 @@ export const scheduleRouter = createRouter({
     )
     .query(async ({ input }) => {
       const db = getDb();
-      const { tanggal, busId, ruteId, status, page = 1, limit = 10 } = input || {};
+      const { search, tanggal, busId, ruteId, status, page = 1, limit = 10 } = input || {};
       
       const allSchedules = await db.select().from(schedules).orderBy(desc(schedules.createdAt));
       
@@ -39,6 +39,15 @@ export const scheduleRouter = createRouter({
         kernet: s.kernetId ? employeeMap.get(s.kernetId) || null : null,
       }));
       
+      if (search) {
+        const q = search.toLowerCase();
+        filtered = filtered.filter(s =>
+          (s.route?.namaTujuan || '').toLowerCase().includes(q) ||
+          (s.route?.kodeRute || '').toLowerCase().includes(q) ||
+          (s.bus?.platNomor || '').toLowerCase().includes(q) ||
+          (s.supir?.nama || '').toLowerCase().includes(q),
+        );
+      }
       if (tanggal) {
         const dateStr = new Date(tanggal).toISOString().split('T')[0];
         filtered = filtered.filter(s => {
@@ -77,6 +86,59 @@ export const scheduleRouter = createRouter({
         supir: supirData[0] || null,
         kernet: kernetData[0] || null,
       };
+    }),
+
+  // Data lengkap untuk export PDF: semua jadwal dalam rentang tanggal (tanpa
+  // pagination). Jika rentang kosong, kembalikan semua jadwal.
+  exportData: publicQuery
+    .input(
+      z.object({
+        dari: z.string().optional(),
+        sampai: z.string().optional(),
+      }).optional(),
+    )
+    .query(async ({ input }) => {
+      const db = getDb();
+      const { dari, sampai } = input || {};
+
+      const allSchedules = await db.select().from(schedules).orderBy(desc(schedules.createdAt));
+      const allBuses = await db.select().from(buses);
+      const allRoutes = await db.select().from(routes);
+      const allEmployees = await db.select().from(employees);
+
+      const busMap = new Map(allBuses.map((b) => [b.id, b]));
+      const routeMap = new Map(allRoutes.map((r) => [r.id, r]));
+      const employeeMap = new Map(allEmployees.map((e) => [e.id, e]));
+
+      let items = allSchedules.map((s) => ({
+        ...s,
+        bus: busMap.get(s.busId) || null,
+        route: routeMap.get(s.ruteId) || null,
+        supir: employeeMap.get(s.supirId) || null,
+        kernet: s.kernetId ? employeeMap.get(s.kernetId) || null : null,
+      }));
+
+      // Bandingkan di level YYYY-MM-DD karena kolom tanggal disimpan ISO string penuh.
+      const dayOf = (value: string) => {
+        const d = new Date(value);
+        return Number.isNaN(d.getTime()) ? null : d.toISOString().split('T')[0];
+      };
+      if (dari) {
+        const start = dayOf(dari);
+        if (start) items = items.filter((s) => {
+          const day = dayOf(s.tanggal);
+          return day !== null && day >= start;
+        });
+      }
+      if (sampai) {
+        const end = dayOf(sampai);
+        if (end) items = items.filter((s) => {
+          const day = dayOf(s.tanggal);
+          return day !== null && day <= end;
+        });
+      }
+
+      return { items, total: items.length };
     }),
 
   calendarEvents: publicQuery

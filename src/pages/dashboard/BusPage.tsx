@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { trpc } from '@/providers/trpc';
 import DataTable from '@/components/dashboard/DataTable';
 import { Badge } from '@/components/ui/badge';
+import { useAppName } from '@/hooks/useContactSettings';
 
 const statusColors: Record<string, string> = {
   aktif: 'bg-green-100 text-green-700',
@@ -41,7 +42,7 @@ export default function BusPage() {
   return (
     <DataTable
       title="Manajemen Bus"
-      description="Kelola armada bus SafaTrans"
+      description={`Kelola armada bus ${useAppName()}`}
       columns={columns}
       data={(data?.items as Record<string, unknown>[]) || []}
       isLoading={isLoading}

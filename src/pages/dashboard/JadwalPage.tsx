@@ -6,14 +6,16 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import listPlugin from '@fullcalendar/list';
 import interactionPlugin from '@fullcalendar/interaction';
+import idLocale from '@fullcalendar/core/locales/id';
 import type { EventClickArg } from '@fullcalendar/core';
 import DataTable from '@/components/dashboard/DataTable';
+import ExportJadwalDialog from '@/components/dashboard/ExportJadwalDialog';
 import { trpc } from '@/providers/trpc';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, LayoutList, Plus } from 'lucide-react';
+import { CalendarDays, LayoutList, Plus, FileDown } from 'lucide-react';
 import { Link } from 'react-router';
 
 const statusColors: Record<string, string> = {
@@ -30,17 +32,40 @@ const statusLabels: Record<string, string> = {
 
 type ViewMode = 'tabel' | 'kalender';
 
+// Format tanggal/waktu dengan fallback agar nilai invalid tidak mem-crash render.
+const safeDate = (value: unknown, pattern: string) => {
+  if (!value) return '-';
+  const date = new Date(value as string);
+  return Number.isNaN(date.getTime()) ? '-' : format(date, pattern);
+};
+
 export default function JadwalPage() {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
-  const [, setSearch] = useState('');
+  const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('tabel');
+  const [exportOpen, setExportOpen] = useState(false);
+  const utils = trpc.useUtils();
 
-  // Data kalender memakai API yang sama dengan halaman Kalender.
+  // Data tabel memakai schedule.list (sama seperti halaman Bus/Rute).
+  const { data, isLoading } = trpc.schedule.list.useQuery({
+    search: search || undefined,
+    page,
+    limit: 10,
+  });
+
+  // Data kalender memakai endpoint khusus (enabled hanya saat view kalender).
   const { data: calendarData, isLoading: calendarLoading } =
     trpc.schedule.calendarEvents.useQuery(undefined, {
       enabled: viewMode === 'kalender',
     });
+
+  const deleteMutation = trpc.schedule.delete.useMutation({
+    onSuccess: () => {
+      utils.schedule.list.invalidate();
+      utils.schedule.calendarEvents.invalidate();
+    },
+  });
 
   const calendarEvents =
     calendarData?.map((e: Record<string, unknown>) => ({
@@ -59,39 +84,16 @@ export default function JadwalPage() {
     navigate('/dashboard/jadwal/tambah');
   };
 
-  // Contoh data untuk demo
-  const sampleData = [
-    {
-      tanggal: new Date('2023-10-05T08:00:00Z').toISOString(),
-      waktuBerangkat: '08:00',
-      ruteId: 1,
-      busId: 2,
-      supirId: 3,
-      hargaTiket: 20000,
-      status: 'tersedia',
-    },
-    {
-      tanggal: new Date('2023-10-05T09:00:00Z').toISOString(),
-      waktuBerangkat: '09:00',
-      ruteId: 1,
-      busId: 4,
-      supirId: 5,
-      hargaTiket: 25000,
-      status: 'berangkat',
-    },
-    // Tambahkan lebih banyak data contoh sesuai kebutuhan
-  ];
-
   const columns = [
     {
       key: 'tanggal',
       label: 'Tanggal',
-      render: (value: unknown) => (value ? format(new Date(value as string), 'dd/MM/yyyy') : '-'),
+      render: (value: unknown) => safeDate(value, 'dd/MM/yyyy'),
     },
     {
       key: 'waktuBerangkat',
       label: 'Berangkat',
-      render: (value: unknown) => (value ? format(new Date(value as string), 'HH:mm') : '-'),
+      render: (value: unknown) => safeDate(value, 'HH:mm'),
     },
     {
       key: 'ruteId',
@@ -123,64 +125,6 @@ export default function JadwalPage() {
       ),
     },
   ];
-
-  const tableContent = (
-    <DataTable
-      columns={columns}
-      data={sampleData || []} // Gunakan data contoh saat ini
-      isLoading={false}
-      total={10} // Jumlah total data dummy
-      page={page}
-      totalPages={2} // Jumlah total halaman dummy
-      onPageChange={setPage}
-      onSearch={setSearch}
-      onDelete={(id) => console.warn('Delete dummy schedule:', id)}
-      addLink="/dashboard/jadwal/tambah"
-      editLinkPrefix="/dashboard/jadwal"
-      searchPlaceholder="Cari rute, bus, atau supir..."
-    />
-  );
-
-  const calendarContent = (
-    <Card className="border-slate-200">
-      <CardContent className="p-4">
-        {calendarLoading ? (
-          <Skeleton className="h-[600px] rounded-lg" />
-        ) : (
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            headerToolbar={{
-              left: 'prev,next today',
-              center: 'title',
-              right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
-            }}
-            events={calendarEvents}
-            eventClick={handleEventClick}
-            select={handleDateSelect}
-            editable={true}
-            selectable={true}
-            selectMirror={true}
-            dayMaxEvents={true}
-            height="auto"
-            locale="id"
-            buttonText={{
-              today: 'Hari Ini',
-              month: 'Bulan',
-              week: 'Minggu',
-              day: 'Hari',
-              list: 'Daftar',
-            }}
-            eventTimeFormat={{
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false,
-            }}
-          />
-        )}
-      </CardContent>
-    </Card>
-  );
 
   return (
     <div className="space-y-4">
@@ -216,6 +160,13 @@ export default function JadwalPage() {
               <CalendarDays className="w-4 h-4 mr-1.5" /> Kalender
             </Button>
           </div>
+          <Button
+            variant="outline"
+            onClick={() => setExportOpen(true)}
+            className="gap-2"
+          >
+            <FileDown className="w-4 h-4" /> Export PDF
+          </Button>
           <Link to="/dashboard/jadwal/tambah">
             <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
               <Plus className="w-4 h-4" /> Tambah
@@ -223,7 +174,63 @@ export default function JadwalPage() {
           </Link>
         </div>
       </div>
-      {viewMode === 'tabel' ? tableContent : calendarContent}
+      {viewMode === 'tabel' ? (
+        <DataTable
+          columns={columns}
+          data={(data?.items as Record<string, unknown>[]) || []}
+          isLoading={isLoading}
+          total={data?.total || 0}
+          page={data?.page || 1}
+          totalPages={data?.totalPages || 1}
+          onPageChange={setPage}
+          onSearch={setSearch}
+          onDelete={(id) => deleteMutation.mutate({ id })}
+          addLink="/dashboard/jadwal/tambah"
+          editLinkPrefix="/dashboard/jadwal"
+          searchPlaceholder="Cari rute, bus, atau supir..."
+        />
+      ) : (
+        <Card className="border-slate-200">
+          <CardContent className="p-4">
+            {calendarLoading ? (
+              <Skeleton className="h-[600px] rounded-lg" />
+            ) : (
+              <FullCalendar
+                plugins={[dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin]}
+                initialView="dayGridMonth"
+                headerToolbar={{
+                  left: 'prev,next today',
+                  center: 'title',
+                  right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+                }}
+                events={calendarEvents}
+                eventClick={handleEventClick}
+                select={handleDateSelect}
+                editable={true}
+                selectable={true}
+                selectMirror={true}
+                dayMaxEvents={true}
+                height="auto"
+                locales={[idLocale]}
+                locale="id"
+                buttonText={{
+                  today: 'Hari Ini',
+                  month: 'Bulan',
+                  week: 'Minggu',
+                  day: 'Hari',
+                  list: 'Daftar',
+                }}
+                eventTimeFormat={{
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false,
+                }}
+              />
+            )}
+          </CardContent>
+        </Card>
+      )}
+      <ExportJadwalDialog open={exportOpen} onOpenChange={setExportOpen} />
     </div>
   );
 }

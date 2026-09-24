@@ -1,8 +1,10 @@
 import { Link } from 'react-router';
 import { ArrowRight, MapPin, Clock, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useAppName } from '@/hooks/useContactSettings';
 
 export default function Hero() {
+  const appName = useAppName();
   return (
     <section className="relative pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
       {/* Background pattern */}
@@ -22,16 +24,16 @@ export default function Hero() {
               Perjalanan Nyaman & <span className="text-blue-300">Aman</span> ke Seluruh Indonesia
             </h1>
             <p className="text-lg text-blue-100 mb-8 max-w-xl mx-auto lg:mx-0">
-              SafaTrans menyediakan layanan bus travel premium dengan armada modern, supir berpengalaman, dan fasilitas lengkap untuk kenyamanan perjalanan Anda.
+              {appName} menyediakan layanan bus travel premium dengan armada modern, supir berpengalaman, dan fasilitas lengkap untuk kenyamanan perjalanan Anda.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Link to="/jadwal">
-                <Button size="lg" className="bg-white text-blue-900 hover:bg-blue-50 font-semibold px-8">
+                <Button size="lg" className="bg-blue-500 text-white hover:bg-blue-400 shadow-lg shadow-blue-950/40 font-semibold px-8">
                   Lihat Jadwal <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Link to="/kontak">
-                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 font-semibold px-8">
+                <Button size="lg" variant="outline" className="bg-transparent border-white/40 text-white hover:bg-white/10 hover:text-white font-semibold px-8">
                   Hubungi Kami
                 </Button>
               </Link>

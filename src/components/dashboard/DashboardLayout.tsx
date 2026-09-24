@@ -1,10 +1,11 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppName } from '@/hooks/useContactSettings';
 import { LOGIN_PATH } from '@/const';
 import {
   Bus, Route, Users, Calendar, LayoutDashboard, Menu, X, ChevronDown,
-  UserCircle
+  UserCircle, UserCog
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,12 +17,14 @@ const sidebarLinks = [
   { to: '/dashboard/rute', icon: Route, label: 'Rute' },
   { to: '/dashboard/supir', icon: Users, label: 'Supir' },
   { to: '/dashboard/kernet', icon: Users, label: 'Kernet' },
+  { to: '/dashboard/profil', icon: UserCog, label: 'Profil' },
 ];
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const appName = useAppName();
   // Guard: halaman /dashboard hanya untuk admin.
   const { user, isLoading, logout } = useAuth({
     redirectOnUnauthenticated: true,
@@ -81,7 +84,7 @@ export default function DashboardLayout() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Bus className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg">SafaTrans</span>
+            <span className="font-bold text-lg">{appName}</span>
           </Link>
           <button
             onClick={() => setSidebarOpen(false)}

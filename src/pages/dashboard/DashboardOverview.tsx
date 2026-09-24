@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useAppName } from '@/hooks/useContactSettings';
 
 const statusColors: Record<string, string> = {
   tersedia: 'bg-blue-100 text-blue-700',
@@ -83,7 +84,7 @@ export default function DashboardOverview() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-slate-900">Dashboard</h2>
-        <p className="text-slate-500">Ringkasan aktivitas dan statistik SafaTrans</p>
+        <p className="text-slate-500">Ringkasan aktivitas dan statistik {useAppName()}</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
