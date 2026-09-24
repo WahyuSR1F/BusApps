@@ -19,7 +19,6 @@ import KernetPage from './pages/dashboard/KernetPage'
 import KernetFormPage from './pages/dashboard/KernetFormPage'
 import JadwalPage from './pages/dashboard/JadwalPage'
 import JadwalFormPage from './pages/dashboard/JadwalFormPage'
-import KalenderPage from './pages/dashboard/KalenderPage'
 
 export default function App() {
   return (
@@ -35,7 +34,6 @@ export default function App() {
       {/* Dashboard Routes */}
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardOverview />} />
-        <Route path="kalender" element={<KalenderPage />} />
         <Route path="jadwal" element={<JadwalPage />} />
         <Route path="jadwal/tambah" element={<JadwalFormPage />} />
         <Route path="jadwal/:id/edit" element={<JadwalFormPage />} />

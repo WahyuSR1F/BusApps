@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { CalendarDays, LayoutList } from 'lucide-react';
+import { CalendarDays, LayoutList, Plus } from 'lucide-react';
+import { Link } from 'react-router';
 
 const statusColors: Record<string, string> = {
   tersedia: 'bg-blue-100 text-blue-700',
@@ -125,8 +126,6 @@ export default function JadwalPage() {
 
   const tableContent = (
     <DataTable
-      title="Manajemen Jadwal"
-      description="Kelola jadwal perjalanan bus"
       columns={columns}
       data={sampleData || []} // Gunakan data contoh saat ini
       isLoading={false}
@@ -190,31 +189,38 @@ export default function JadwalPage() {
           <h2 className="text-2xl font-bold text-slate-900">Manajemen Jadwal</h2>
           <p className="text-slate-500">Kelola jadwal perjalanan bus</p>
         </div>
-        <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode('tabel')}
-            className={
-              viewMode === 'tabel'
-                ? 'bg-white shadow-sm text-slate-900 hover:bg-white'
-                : 'text-slate-500 hover:text-slate-700'
-            }
-          >
-            <LayoutList className="w-4 h-4 mr-1.5" /> Tabel
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setViewMode('kalender')}
-            className={
-              viewMode === 'kalender'
-                ? 'bg-white shadow-sm text-slate-900 hover:bg-white'
-                : 'text-slate-500 hover:text-slate-700'
-            }
-          >
-            <CalendarDays className="w-4 h-4 mr-1.5" /> Kalender
-          </Button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-lg p-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('tabel')}
+              className={
+                viewMode === 'tabel'
+                  ? 'bg-white shadow-sm text-slate-900 hover:bg-white'
+                  : 'text-slate-500 hover:text-slate-700'
+              }
+            >
+              <LayoutList className="w-4 h-4 mr-1.5" /> Tabel
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode('kalender')}
+              className={
+                viewMode === 'kalender'
+                  ? 'bg-white shadow-sm text-slate-900 hover:bg-white'
+                  : 'text-slate-500 hover:text-slate-700'
+              }
+            >
+              <CalendarDays className="w-4 h-4 mr-1.5" /> Kalender
+            </Button>
+          </div>
+          <Link to="/dashboard/jadwal/tambah">
+            <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+              <Plus className="w-4 h-4" /> Tambah
+            </Button>
+          </Link>
         </div>
       </div>
       {viewMode === 'tabel' ? tableContent : calendarContent}

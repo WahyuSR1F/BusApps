@@ -11,7 +11,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 const sidebarLinks = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/dashboard/kalender', icon: Calendar, label: 'Kalender' },
   { to: '/dashboard/jadwal', icon: Calendar, label: 'Jadwal' },
   { to: '/dashboard/bus', icon: Bus, label: 'Bus' },
   { to: '/dashboard/rute', icon: Route, label: 'Rute' },

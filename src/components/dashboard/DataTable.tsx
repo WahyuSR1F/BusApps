@@ -15,8 +15,8 @@ interface Column {
 }
 
 interface DataTableProps {
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   columns: Column[];
   data: Record<string, unknown>[];
   isLoading: boolean;
@@ -45,17 +45,19 @@ export default function DataTable({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">{title}</h2>
-          <p className="text-sm text-slate-500">{description}</p>
+      {(title || description) && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            {title && <h2 className="text-xl font-bold text-slate-900">{title}</h2>}
+            {description && <p className="text-sm text-slate-500">{description}</p>}
+          </div>
+          <Link to={addLink}>
+            <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
+              <Plus className="w-4 h-4" /> Tambah
+            </Button>
+          </Link>
         </div>
-        <Link to={addLink}>
-          <Button className="bg-blue-600 hover:bg-blue-700 gap-2">
-            <Plus className="w-4 h-4" /> Tambah
-          </Button>
-        </Link>
-      </div>
+      )}
 
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-sm">
