@@ -41,3 +41,9 @@ build/
 # Test coverage
 coverage/
 .nyc_output/
+
+# Vercel
+.vercel
+
+.vercel
+.env*

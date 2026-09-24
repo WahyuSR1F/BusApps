@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  // api/index.js adalah bundle hasil `npm run build:api` (generated),
+  // sama seperti dist — jangan dilint.
+  globalIgnores(['dist', 'api/index.js']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
