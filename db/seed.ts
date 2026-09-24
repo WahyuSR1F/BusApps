@@ -1,5 +1,8 @@
+import "dotenv/config";
 import { getDb } from "../server/queries/connection";
-import { buses, routes, employees, schedules } from "./schema";
+import { buses, routes, employees, schedules, users } from "./schema";
+import { eq } from "drizzle-orm";
+import { hashPassword } from "../server/lib/password";
 
 // Kolom tanggal/waktu di SQLite disimpan sebagai text (ISO string),
 // hargaTiket sebagai real (number).
@@ -18,7 +21,90 @@ async function seed() {
   const db = getDb();
   console.log("Seeding database...");
 
-  // Seed Buses
+  // ==========================================================
+  // Akun admin dari env var (wajib):
+  //   ADMIN_EMAIL    — email login admin
+  //   ADMIN_PASSWORD — password admin (min. 8 karakter)
+  // Idempotent: kalau email sudah ada, password di-update.
+  // Jalankan: npm run db:seed
+  // ==========================================================
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error(
+      "ADMIN_EMAIL dan ADMIN_PASSWORD wajib di-set di .env sebelum seeding",
+    );
+  }
+  if (adminPassword.length < 8) {
+    throw new Error("ADMIN_PASSWORD minimal 8 karakter");
+  }
+
+  const adminPasswordHash = await hashPassword(adminPassword);
+  const existingAdmin = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, adminEmail))
+    .limit(1);
+
+  if (existingAdmin.length > 0) {
+    await db
+      .update(users)
+      .set({ passwordHash: adminPasswordHash, role: "admin" })
+      .where(eq(users.id, existingAdmin[0].id));
+    console.log(`Admin diperbarui: ${adminEmail}`);
+  } else {
+    await db.insert(users).values({
+      unionId: `email:${adminEmail}`,
+      name: "Admin SafaTrans",
+      email: adminEmail,
+      passwordHash: adminPasswordHash,
+      role: "admin",
+    });
+    console.log(`Admin dibuat: ${adminEmail}`);
+  }
+
+  // ==========================================================
+  // Guard idempoten: seed data demo hanya kalau tabel masih kosong,
+  // agar `db:seed` aman dijalankan berulang.
+  // ==========================================================
+  const existingBuses = await db.select({ id: buses.id }).from(buses).limit(1);
+  if (existingBuses.length === 0) {
+    await seedBuses(db);
+  } else {
+    console.log("Buses sudah ada, skip seed data demo.");
+  }
+
+  const existingRoutes = await db.select({ id: routes.id }).from(routes).limit(1);
+  if (existingRoutes.length === 0) {
+    await seedRoutes(db);
+  } else {
+    console.log("Routes sudah ada, skip seed data demo.");
+  }
+
+  const existingEmployees = await db
+    .select({ id: employees.id })
+    .from(employees)
+    .limit(1);
+  if (existingEmployees.length === 0) {
+    await seedEmployees(db);
+  } else {
+    console.log("Employees sudah ada, skip seed data demo.");
+  }
+
+  const existingSchedules = await db
+    .select({ id: schedules.id })
+    .from(schedules)
+    .limit(1);
+  if (existingSchedules.length === 0) {
+    await seedSchedules(db);
+  } else {
+    console.log("Schedules sudah ada, skip seed data demo.");
+  }
+
+  console.log("Database seeded successfully!");
+}
+
+async function seedBuses(db: ReturnType<typeof getDb>) {
   const busData = [
     { platNomor: "B 1234 ABC", merek: "Mercedes-Benz", model: "OH 1626", kapasitas: 45, fasilitas: "AC, TV, Toilet, WiFi", status: "aktif" as const, tahun: 2022 },
     { platNomor: "B 5678 DEF", merek: "Hino", model: "RN 285", kapasitas: 50, fasilitas: "AC, TV, Toilet", status: "aktif" as const, tahun: 2023 },
@@ -32,8 +118,9 @@ async function seed() {
     await db.insert(buses).values(bus);
   }
   console.log("Buses seeded.");
+}
 
-  // Seed Routes
+async function seedRoutes(db: ReturnType<typeof getDb>) {
   const routeData = [
     { namaTujuan: "Surabaya", kodeRute: "JKT-SBY", hargaTiket: 350000, estimasiJam: 12, estimasiMenit: 30, jarakKm: 780, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Bungurasih", keterangan: "Via tol Trans-Java" },
     { namaTujuan: "Yogyakarta", kodeRute: "JKT-YOG", hargaTiket: 280000, estimasiJam: 10, estimasiMenit: 0, jarakKm: 520, terminalAsal: "Terminal Pulo Gebang", terminalTujuan: "Terminal Giwangan", keterangan: "Via tol Cipularang" },
@@ -47,8 +134,9 @@ async function seed() {
     await db.insert(routes).values(route);
   }
   console.log("Routes seeded.");
+}
 
-  // Seed Employees (Supir)
+async function seedEmployees(db: ReturnType<typeof getDb>) {
   const supirData = [
     { nama: "Budi Santoso", noTelp: "081234567890", email: "budi@email.com", alamat: "Jl. Mawar No. 1, Jakarta", role: "supir" as const, noSim: "SIM123456", jenisSim: "B2", status: "aktif" as const },
     { nama: "Ahmad Wijaya", noTelp: "081234567891", email: "ahmad@email.com", alamat: "Jl. Melati No. 2, Jakarta", role: "supir" as const, noSim: "SIM123457", jenisSim: "B2", status: "aktif" as const },
@@ -61,7 +149,6 @@ async function seed() {
     await db.insert(employees).values(supir);
   }
 
-  // Seed Employees (Kernet)
   const kernetData = [
     { nama: "Rudi Hartono", noTelp: "081345678901", email: "rudi@email.com", alamat: "Jl. Dahlia No. 10, Jakarta", role: "kernet" as const, status: "aktif" as const },
     { nama: "Sigit Prabowo", noTelp: "081345678902", email: "sigit@email.com", alamat: "Jl. Tulip No. 11, Jakarta", role: "kernet" as const, status: "aktif" as const },
@@ -74,8 +161,9 @@ async function seed() {
     await db.insert(employees).values(kernet);
   }
   console.log("Employees seeded.");
+}
 
-  // Seed Schedules
+async function seedSchedules(db: ReturnType<typeof getDb>) {
   const scheduleData = [
     {
       busId: 1, ruteId: 1, supirId: 1, kernetId: 1,
@@ -139,8 +227,9 @@ async function seed() {
     await db.insert(schedules).values(schedule);
   }
   console.log("Schedules seeded.");
-
-  console.log("Database seeded successfully!");
 }
 
-seed().catch(console.error);
+seed().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

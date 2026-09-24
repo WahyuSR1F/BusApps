@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router'
 import Home from './pages/Home'
-import Login from './pages/Login'
+import LoginPage from './pages/LoginPage'
+import RegisterPage from './pages/RegisterPage'
 import NotFound from './pages/NotFound'
 import DashboardLayout from './components/dashboard/DashboardLayout'
 import DashboardOverview from './pages/dashboard/DashboardOverview'
@@ -24,7 +25,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
       <Route path="/jadwal" element={<JadwalLengkap />} />
       <Route path="/galeri" element={<GaleriPage />} />
       <Route path="/tentang" element={<TentangPage />} />

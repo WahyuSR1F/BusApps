@@ -17,6 +17,9 @@ export const users = sqliteTable("users", {
   unionId: text("unionId").notNull().unique(),
   name: text("name", { length: 255 }),
   email: text("email", { length: 320 }),
+  // Hash password (format scrypt:<salt>:<hash>) — hanya diisi untuk akun
+  // yang daftar via email/password. Akun OAuth (Kimi) biarkan NULL.
+  passwordHash: text("password_hash"),
   avatar: text("avatar"),
   role: text("role", { enum: ["user", "admin"] }).default("user").notNull(),
   createdAt: text("createdAt").default(sql`(datetime('now'))`).notNull(),

@@ -43,6 +43,16 @@ export default function Navbar() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
+            <Link to="/login">
+              <Button size="sm" variant="ghost" className="text-slate-600 hover:text-blue-600">
+                Masuk
+              </Button>
+            </Link>
+            <Link to="/register">
+              <Button size="sm" variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                Daftar
+              </Button>
+            </Link>
             <Link to="/dashboard">
               <Button size="sm" className="bg-blue-600 hover:bg-blue-700">Admin</Button>
             </Link>
@@ -74,6 +84,18 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+            <div className="flex gap-2 pt-2">
+              <Link to="/login" className="flex-1" onClick={() => setIsOpen(false)}>
+                <Button size="sm" variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
+                  Masuk
+                </Button>
+              </Link>
+              <Link to="/register" className="flex-1" onClick={() => setIsOpen(false)}>
+                <Button size="sm" className="w-full bg-blue-600 hover:bg-blue-700">
+                  Daftar
+                </Button>
+              </Link>
+            </div>
             <Link to="/dashboard" onClick={() => setIsOpen(false)}>
               <Button size="sm" className="w-full mt-2 bg-blue-600 hover:bg-blue-700">Admin Dashboard</Button>
             </Link>

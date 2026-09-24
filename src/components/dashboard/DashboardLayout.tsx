@@ -1,6 +1,7 @@
-import { Outlet, Link, useLocation } from 'react-router';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { LOGIN_PATH } from '@/const';
 import {
   Bus, Route, Users, Calendar, LayoutDashboard, Menu, X, ChevronDown,
   UserCircle
@@ -21,7 +22,46 @@ const sidebarLinks = [
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  // Guard: halaman /dashboard hanya untuk admin.
+  const { user, isLoading, logout } = useAuth({
+    redirectOnUnauthenticated: true,
+    redirectPath: LOGIN_PATH,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-sm text-slate-500">Memuat...</p>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  if (user.role !== 'admin') {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full text-center bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
+          <h1 className="text-lg font-semibold text-slate-900">Akses ditolak</h1>
+          <p className="text-sm text-slate-500 mt-2">
+            Halaman ini hanya untuk admin. Anda login sebagai pelanggan.
+          </p>
+          <div className="flex gap-2 justify-center mt-6">
+            <Button variant="outline" onClick={() => navigate('/')}>
+              Ke Beranda
+            </Button>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => logout()}
+            >
+              Ganti Akun
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -100,15 +140,18 @@ export default function DashboardLayout() {
               </div>
               <div className="hidden sm:block">
                 <div className="text-sm font-medium text-slate-700">{user?.name || 'Admin'}</div>
-                <div className="text-xs text-slate-500">Administrator</div>
+                <div className="text-xs text-slate-500">{user?.email || 'Administrator'}</div>
               </div>
               <ChevronDown className="w-4 h-4 text-slate-400 hidden sm:block" />
             </div>
-            <Link to="/">
-              <Button variant="ghost" size="sm" className="text-slate-500">
-                Keluar
-              </Button>
-            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-slate-500"
+              onClick={() => logout()}
+            >
+              Keluar
+            </Button>
           </div>
         </header>
 
